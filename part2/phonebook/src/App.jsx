@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { createPerson, deletePerson, updateNumber } from "./services/persons";
+import { NotificationError, NotificationOk } from "./components/Notification";
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState("");
   const [newNumber, setNewNumber] = useState("");
   const [filterName, setFilterName] = useState("");
+  const [message, setMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   const addPerson = (event) => {
     event.preventDefault();
@@ -17,13 +20,27 @@ const App = () => {
         `${newName} already exists, do you want to update the number ?`
       );
       if (confirmUpdate) {
-        updateNumber(samePerson.id, newNumber).then((updatedPerson) => {
-          setPersons((prevPersons) =>
-            prevPersons.map((person) =>
-              person.id === updatedPerson.id ? updatedPerson : person
-            )
-          );
-        });
+        updateNumber(samePerson.id, newNumber)
+          .then((updatedPerson) => {
+            setPersons((prevPersons) =>
+              prevPersons.map((person) =>
+                person.id === updatedPerson.id ? updatedPerson : person
+              )
+            );
+            setMessage(`${newNumber} updated to ${samePerson.name}`);
+            setTimeout(() => {
+              setMessage("");
+            }, 3000);
+          })
+          .catch((error) => {
+            setPersons(persons.filter((n) => n.id !== samePerson.id));
+            setErrorMessage(
+              `${samePerson.name} was already deleted from database`
+            );
+            setTimeout(() => {
+              setErrorMessage("");
+            }, 3000);
+          });
       }
     } else {
       const personObject = {
@@ -33,6 +50,10 @@ const App = () => {
       };
       setPersons(persons.concat(personObject));
       createPerson(personObject);
+      setMessage(`${newName} added to phoneBook`);
+      setTimeout(() => {
+        setMessage("");
+      }, 3000);
     }
 
     setNewName("");
@@ -66,7 +87,7 @@ const App = () => {
   };
 
   useEffect(() => {
-    axios.get("http://localhost:3001/persons").then((response) => {
+    axios.get("/api/persons").then((response) => {
       setPersons(response.data);
     });
   }, []);
@@ -79,6 +100,9 @@ const App = () => {
       </div>
       <div>filtered name: {filterName}</div>
       <h2>add a new</h2>
+      {message != "" ? <NotificationOk message={message} /> : null}
+      {errorMessage != "" ? <NotificationError message={errorMessage} /> : null}
+
       <form>
         <div>
           name: <input type="text" value={newName} onChange={handleNewName} />
