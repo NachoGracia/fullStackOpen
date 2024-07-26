@@ -107,14 +107,21 @@ app.post(`/api/persons`, async (request, response) => {
   }
 });
 
-app.get(`/api/persons/:id`, (request, response) => {
-  const id = Number(request.params.id);
+app.get("/api/persons/:id", (request, response) => {
+  PhoneNumber.findById(request.params.id)
+    .then((person) => {
+      if (person) {
+        response.json(person);
+      } else {
+        response.status(404).end();
+      }
+    })
 
-  const person = persons.find((person) => person.id === id);
-
-  person ? response.json(person) : response.status(404).end();
+    .catch((error) => {
+      console.log(error);
+      response.status(500).end();
+    });
 });
-
 app.delete(`/api/delete/:id`, (request, response) => {
   const id = Number(request.params.id);
   const personsNotDeleted = persons.filter((person) => person.id !== id);

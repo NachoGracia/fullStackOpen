@@ -29,4 +29,4 @@ PersonSchema.set("toJSON", {
   },
 });
 
-module.exports = mongoose.model("Note", PersonSchema);
+module.exports = mongoose.model("PhoneNumber", PersonSchema);
