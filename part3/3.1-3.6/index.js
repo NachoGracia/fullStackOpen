@@ -5,6 +5,7 @@ const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const cors = require("cors");
 const PersonSchema = require("./models/person").schema;
+const errorHandler = require("./middlewares/errorHandler");
 
 app.use(express.static("dist"));
 app.use(cors());
@@ -53,10 +54,6 @@ const PhoneNumber = mongoose.model("PhoneNumber", PersonSchema);
 //     number: "39-23-6423122",
 //   },
 // ];
-
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: "unknown endpoint" });
-};
 
 app.get("/info", (request, response) => {
   let totalPersons = persons.length;
@@ -107,7 +104,7 @@ app.post(`/api/persons`, async (request, response) => {
   }
 });
 
-app.get("/api/persons/:id", (request, response) => {
+app.get("/api/persons/:id", (request, response, next) => {
   PhoneNumber.findById(request.params.id)
     .then((person) => {
       if (person) {
@@ -117,23 +114,35 @@ app.get("/api/persons/:id", (request, response) => {
       }
     })
 
-    .catch((error) => {
-      console.log(error);
-      response.status(500).end();
-    });
-});
-app.delete(`/api/delete/:id`, (request, response) => {
-  const id = Number(request.params.id);
-  const personsNotDeleted = persons.filter((person) => person.id !== id);
-  personsNotDeleted
-    ? response.json(personsNotDeleted)
-    : response.status(404).end();
+    .catch((error) => next(error));
 });
 
-app.use(unknownEndpoint);
+app.delete(`/api/persons/:id`, (request, response) => {
+  const id = request.params.id;
+
+  PhoneNumber.findByIdAndDelete(id)
+    .then((deletedPerson) => {
+      if (deletedPerson) {
+        response.status(204).end();
+      } else {
+        response.status(404).json({ error: "Person not found" });
+      }
+    })
+    .catch((error) => {
+      response.status(500).json({ error: "Server error" });
+    });
+});
 
 const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT} 🚀`);
 });
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: "unknown endpoint" });
+};
+
+app.use(unknownEndpoint);
+
+app.use(errorHandler);
