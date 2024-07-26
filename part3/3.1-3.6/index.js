@@ -1,9 +1,10 @@
 const express = require("express");
+require("dotenv").config();
+const app = express();
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const cors = require("cors");
-
-const app = express();
+const PersonSchema = require("./models/person").schema;
 
 app.use(express.static("dist"));
 app.use(cors());
@@ -16,28 +17,42 @@ app.use(morgan("tiny"));
 
 app.use(morgan(":body"));
 
-let persons = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
+//!------------------MONGO------------------!//
+
+const mongoose = require("mongoose");
+
+const url = process.env.MONGODB_URI;
+
+mongoose.set("strictQuery", false);
+
+mongoose.connect(url);
+
+const PhoneNumber = mongoose.model("PhoneNumber", PersonSchema);
+
+//!------------------MONGO------------------!//
+
+// let persons = [
+//   {
+//     id: 1,
+//     name: "Arto Hellas",
+//     number: "040-123456",
+//   },
+//   {
+//     id: 2,
+//     name: "Ada Lovelace",
+//     number: "39-44-5323523",
+//   },
+//   {
+//     id: 3,
+//     name: "Dan Abramov",
+//     number: "12-43-234345",
+//   },
+//   {
+//     id: 4,
+//     name: "Mary Poppendieck",
+//     number: "39-23-6423122",
+//   },
+// ];
 
 const unknownEndpoint = (request, response) => {
   response.status(404).send({ error: "unknown endpoint" });
@@ -52,9 +67,10 @@ app.get("/info", (request, response) => {
     <p>${responseDate}</p>`
   );
 });
-
 app.get("/api/persons", (request, response) => {
-  response.json(persons);
+  PhoneNumber.find({}).then((notes) => {
+    response.json(notes);
+  });
 });
 
 app.get(`/api/persons/:id`, (request, response) => {
@@ -101,7 +117,7 @@ app.post(`/api/persons`, (request, response) => {
 
 app.use(unknownEndpoint);
 
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT} 🚀`);

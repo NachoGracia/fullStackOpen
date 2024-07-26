@@ -15,12 +15,12 @@ mongoose.set("strictQuery", false);
 
 mongoose.connect(url);
 
-const noteSchema = new mongoose.Schema({
+const PersonSchema = new mongoose.Schema({
   name: String,
   number: Number,
 });
 
-const PhoneNumber = mongoose.model("PhoneNumber", noteSchema);
+const PhoneNumber = mongoose.model("PhoneNumber", PersonSchema);
 if (!nombre && !numero) {
   PhoneNumber.find({}).then((result) => {
     console.log("phonebook:");
