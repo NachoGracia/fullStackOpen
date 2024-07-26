@@ -67,10 +67,44 @@ app.get("/info", (request, response) => {
     <p>${responseDate}</p>`
   );
 });
+
 app.get("/api/persons", (request, response) => {
-  PhoneNumber.find({}).then((notes) => {
-    response.json(notes);
+  PhoneNumber.find({}).then((persons) => {
+    response.json(persons);
   });
+});
+
+const generateId = () => {
+  return Math.floor(Math.random() * 10000000);
+};
+
+app.post(`/api/persons`, async (request, response) => {
+  const body = request.body;
+
+  if (!body.name) {
+    return response.status(400).json({ error: "name missing" });
+  } else if (!body.number) {
+    return response.status(400).json({ error: "number missing" });
+  } else {
+    try {
+      const samePerson = await PhoneNumber.findOne({ name: body.name });
+
+      if (samePerson) {
+        return response.status(404).json({ error: "name must be unique" });
+      }
+
+      const person = new PhoneNumber({
+        name: body.name,
+        number: body.number,
+      });
+
+      const savedPerson = await person.save();
+
+      response.json(savedPerson);
+    } catch (err) {
+      response.status(500).json({ error: err.message });
+    }
+  }
 });
 
 app.get(`/api/persons/:id`, (request, response) => {
@@ -87,32 +121,6 @@ app.delete(`/api/delete/:id`, (request, response) => {
   personsNotDeleted
     ? response.json(personsNotDeleted)
     : response.status(404).end();
-});
-
-const generateId = () => {
-  return Math.floor(Math.random() * 10000000);
-};
-
-app.post(`/api/persons`, (request, response) => {
-  const body = request.body;
-
-  if (!body.name) {
-    return response.status(400).json({ error: "name missing" });
-  } else if (!body.number) {
-    return response.status(400).json({ error: "number missing" });
-  } else {
-    const samePerson = persons.find((person) => person.name === body.name);
-    if (samePerson) {
-      return response.status(404).json({ error: "name must be unique" });
-    }
-    const newPerson = {
-      name: body.name,
-      number: body.number,
-      id: generateId(),
-    };
-    persons = persons.concat(newPerson);
-    response.json(persons);
-  }
 });
 
 app.use(unknownEndpoint);
