@@ -5,7 +5,10 @@ const bodyParser = require("body-parser");
 const morgan = require("morgan");
 const cors = require("cors");
 const PersonSchema = require("./models/person").schema;
-const errorHandler = require("./middlewares/errorHandler");
+const {
+  unknownEndpoint,
+  errorHandlerId,
+} = require("./middlewares/errorHandler");
 
 app.use(express.static("dist"));
 app.use(cors());
@@ -139,10 +142,6 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT} 🚀`);
 });
 
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: "unknown endpoint" });
-};
-
 app.use(unknownEndpoint);
 
-app.use(errorHandler);
+app.use(errorHandlerId);
