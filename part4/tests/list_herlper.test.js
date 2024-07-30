@@ -10,7 +10,7 @@ describe("dummy", () => {
     assert.strictEqual(result, 1);
   });
 
-  test("totalLikes", () => {
+  test.only("totalLikes", () => {
     const blogs = [
       {
         title: "title1",
@@ -26,7 +26,7 @@ describe("dummy", () => {
     assert.strictEqual(result, 11);
   });
 
-  test("favoriteBlog", () => {
+  test.only("favoriteBlog", () => {
     const blogs = [
       {
         title: "title1",
