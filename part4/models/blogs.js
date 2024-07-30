@@ -6,6 +6,10 @@ const blogSchema = new mongoose.Schema({
     required: true,
     minlength: 5,
   },
+  likes: {
+    type: Number,
+    required: true,
+  },
   important: Boolean,
 });
 

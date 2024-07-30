@@ -16,14 +16,17 @@ const initialBlogs = [
   {
     content: "Blog 1",
     important: true,
+    likes: 1,
   },
   {
     content: "Blog 2",
     important: false,
+    likes: 1,
   },
   {
     content: "Blog 3",
     important: true,
+    likes: 1,
   },
 ];
 
@@ -42,7 +45,7 @@ test("http get conexion ok", async () => {
 test("there are three blogs", async () => {
   const response = await api.get("/api/blogs");
 
-  console.log(response.body);
+  //console.log(response.body);
 
   assert.strictEqual(response.body.length, 3);
 });
@@ -60,6 +63,7 @@ test("increase by 1 blog entry", async () => {
   const blog = {
     content: "increased by 1",
     important: true,
+    likes: 3,
   };
   const response = await api
     .post("/api/blogs")
@@ -73,6 +77,28 @@ test("increase by 1 blog entry", async () => {
   assert.strictEqual(response.body.content, blog.content);
   assert.strictEqual(blogs.length, initialBlogs.length + 1);
   assert(blogContents.includes(blog.content));
+});
+
+test("delete blog", async () => {
+  const blogsInDb = await api.get("/api/blogs");
+  //console.log("lo de la db", blogsInDb.body);
+
+  const id = blogsInDb.body[0].id;
+  console.log("ID:", id);
+  await api.delete(`/api/blogs/delete/${id}`).expect(200);
+});
+
+test("update blog's likes", async () => {
+  const blogsInDb = await api.get("/api/blogs");
+  const id = blogsInDb.body[0].id;
+
+  const blog = {
+    content: "increased by 1",
+    important: true,
+    likes: 3,
+  };
+
+  await api.put(`/api/blogs/update/${id}`).send(blog).expect(200);
 });
 
 after(async () => {
