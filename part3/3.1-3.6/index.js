@@ -1,17 +1,10 @@
-const express = require("express");
 require("dotenv").config();
-const app = express();
+const app = require("./app");
+
 const bodyParser = require("body-parser");
 const morgan = require("morgan");
-const cors = require("cors");
-const PersonSchema = require("./models/person").schema;
-const {
-  unknownEndpoint,
-  errorHandlerId,
-} = require("./middlewares/errorHandler");
 
-app.use(express.static("dist"));
-app.use(cors());
+const PersonSchema = require("./models/person").schema;
 
 app.use(bodyParser.json());
 morgan.token("body", (req, res) => {
@@ -20,43 +13,6 @@ morgan.token("body", (req, res) => {
 app.use(morgan("tiny"));
 
 app.use(morgan(":body"));
-
-//!------------------MONGO------------------!//
-
-const mongoose = require("mongoose");
-
-const url = process.env.MONGODB_URI;
-
-mongoose.set("strictQuery", false);
-
-mongoose.connect(url);
-
-const PhoneNumber = mongoose.model("PhoneNumber", PersonSchema);
-
-//!------------------MONGO------------------!//
-
-// let persons = [
-//   {
-//     id: 1,
-//     name: "Arto Hellas",
-//     number: "040-123456",
-//   },
-//   {
-//     id: 2,
-//     name: "Ada Lovelace",
-//     number: "39-44-5323523",
-//   },
-//   {
-//     id: 3,
-//     name: "Dan Abramov",
-//     number: "12-43-234345",
-//   },
-//   {
-//     id: 4,
-//     name: "Mary Poppendieck",
-//     number: "39-23-6423122",
-//   },
-// ];
 
 app.get("/info", (request, response) => {
   let totalPersons = persons.length;
@@ -135,13 +91,3 @@ app.delete(`/api/persons/:id`, (request, response) => {
       response.status(500).json({ error: "Server error" });
     });
 });
-
-const PORT = process.env.PORT;
-
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} 🚀`);
-});
-
-app.use(unknownEndpoint);
-
-app.use(errorHandlerId);
